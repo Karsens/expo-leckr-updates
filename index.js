@@ -13,7 +13,8 @@ type TextObject = {
   "appUpdate.skip": string,
   "appUpdate.update": string,
   "appUpdate.title": string,
-  "appUpdate.newVersion": string
+  "appUpdate.newVersion": string,
+  "appUpdate.performUpdate": string
 };
 
 type VersionInfo = {
@@ -210,11 +211,12 @@ class VersionUpdatesWrapper extends Component<Props, State> {
   }
 
   render() {
-    const { children, enforceStoreNow, enforceWhatsNew } = this.props;
+    const { children, enforceStoreNow, enforceWhatsNew, text } = this.props;
     const { enforceUpdate, latestNativeVersion, whatsNew } = this.state;
 
     return enforceUpdate || enforceStoreNow ? (
       <EnforceUpdateScreen
+        text={text}
         enforceStoreNow={enforceStoreNow}
         latestNativeVersion={latestNativeVersion}
         whatsNew={enforceWhatsNew || whatsNew}
