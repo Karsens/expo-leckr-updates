@@ -78,7 +78,7 @@ type State = {
 };
 
 /**
- * Works out of the box without any props with expo. Props provide possibility to skipping versions and to enforce updates of store versions.
+ * This wrapper works out of the box without any props with expo. Props provide possibility to skipping versions and to enforce updates of store versions.
  *
  * NB: In addition to setting the right props, you must define expo.version to compare it against your backend or enable version skipping.
  *
