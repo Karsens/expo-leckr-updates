@@ -8,13 +8,14 @@ export default {
     const { manifest } = Constants;
 
     const needAppStore =
+      !latestNativeVersion ||
       compareVersions(manifest.version, latestNativeVersion) === -1;
 
     if (needAppStore) {
       const storeLink =
         Platform.OS === "ios"
-          ? manifest.ios.appStoreUrl
-          : manifest.android.playStoreUrl;
+          ? "https://itunes.apple.com/us/app/dunbar/id1457448974?l=nl&ls=1&mt=8"
+          : "https://play.google.com/store/apps/details?id=com.progenworks.dunbar1&hl=en";
 
       Linking.canOpenURL(storeLink).then(supported => {
         if (supported) {

@@ -12,30 +12,24 @@ type Props = {
 
 class EnforceUpdateScreen extends PureComponent<Props> {
 
-  renderButton() {
-    const { latestNativeVersion, text } = this.props;
-
-    return (
-      <Button
-        style={{ margin: 20 }}
-        title={text?.["appUpdate.performUpdate"] || "Perform update"}
-        onPress={() => updates.performUpdate(latestNativeVersion)}
-      />
-    );
-  }
-
   render() {
-    const { whatsNew, enforceStoreNow, text } = this.props;
+    const { latestNativeVersion, whatsNew, enforceStoreNow, text } = this.props;
 
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         {enforceStoreNow && (
           <Text>
-            {text?.["appUpdate.outOfDate"] || "Your version is out of date"}
+            {text?.["appUpdate.outOfDate"] ||
+              "This version is outdated. A new version can be downloaded from the app store."}
           </Text>
         )}
         <Text>{whatsNew}</Text>
-        {this.renderButton()}
+
+        <Button
+          style={{ margin: 20 }}
+          title={text?.["appUpdate.performUpdate"] || "Perform update"}
+          onPress={() => updates.performUpdate(latestNativeVersion)}
+        />
       </View>
     );
   }

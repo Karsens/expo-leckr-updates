@@ -2,8 +2,7 @@
 import React, { Component } from "react";
 import compareVersions from "compare-versions";
 import { Alert, AppState } from "react-native";
-// import { connect } from "react-redux";
-import { Constants, Updates } from "expo";
+import { Updates } from "expo";
 
 //internal
 import EnforceUpdateScreen from "./version.updates.enforce.screen";
@@ -17,13 +16,7 @@ type TextObject = {
   "appUpdate.performUpdate": string
 };
 
-type VersionInfo = {
-  required_version: string,
-  lastest_native_version: string,
-  whats_new: string
-};
-
-type Props = {
+export type Props = {
   /**
    * text object with copy (optional)
    */
@@ -35,28 +28,9 @@ type Props = {
   allowSkip?: boolean,
 
   /**
-   * optional, skipVersion reducer taking a string of new version that has been skipped
-   */
-  skipVersion?: string => void,
-
-  /**
-   * optional,skippedVersion is the last skipped version the user skipped
-   */
-  skippedVersion?: string,
-
-  /**
-   * when true, also do store updates by checking an endpoint to see if there's a new version in the app store
-   */
-  storeUpdates?: boolean,
-
-  /**
    * When true, users can't use the app with this version. This can be used when a new native version must be enforced. All users will directly be directed to the app store.
    */
   enforceStoreNow?: boolean,
-  /**
-   * fetch method to get verison info. only needed when storeUpdates=true.
-   */
-  getVersionInfo?: () => Promise<{ data: VersionInfo }>,
 
   /**
    * isTesting true for testing / debugging purposes is non-dev environments.
@@ -74,8 +48,7 @@ type State = {
    * gotten from backend when coming from background or new appstart (if store pudates is turned on)
    */
   latestNativeVersion?: string,
-  whatsNew?: string,
-  enforceUpdate: boolean
+  whatsNew?: string
 };
 
 /**
@@ -87,11 +60,23 @@ type State = {
  *
  * Todo:
  * - Separation between expo-checking and backend-checking (better naming)
+ * - Keep skippedVersion state in here so you don't need all these props. Use `aSyncStorage`.
+ * - Create function that returns true if there is a newer version available for download that can be used anywhere in the app. Also a function to perform the update. Expose them in index as non-default exports.
+ * - Provide simple UI for a component that uses the above two and is shown or not based on that. Style editable, but a copy is just as easy. kiss.
+ *
+ *
+ * #toRemember - I'm getting more and more into feature separation. It's pretty cool. Dyme may never need to do this because they are creating a monolith but I think it's actually useful for any codebase. To have truly everything about one feature in one file. That's REALLY feature separation. That's why you need no default exports, but just exports. I think there is much much ground to win here. I will print out my codebase and go over it very thoroughly in the park.
+ *
+ * #toRemember - This wrapper can block the children and show the EnforceUpdateScreen instead. This is okay because you can't navigate away from this screen, so there is no navigational transition necessary.
+ *
+ *
+ * More cool additions
  * - Repeated check (every minute)
  * - Also check while app is in background
  * - Possibility to provide function to notify user in background (e.g. push notification or an endpoint to send email)
  * - Make it easier to provide user with details of new app features when the user installs an update (compare differences between app versions)
  *
+ * 100% CODEBASE FIRST DEVELOPMENT + FLOW STATE OPTIMIZATION = EPIC GROWTH
  *
  */
 
@@ -119,30 +104,7 @@ class VersionUpdatesWrapper extends Component<Props, State> {
   };
 
   async checkForUpdates() {
-    const { isTesting, storeUpdates } = this.props;
-
-    if (storeUpdates) {
-      // API Endpoint.
-      const versionInfo = await this.getVersionInfo();
-
-      if (
-        versionInfo &&
-        compareVersions(
-          Constants.manifest.version,
-          versionInfo.required_version
-        ) === -1
-      ) {
-        this.setState({
-          latestNativeVersion: versionInfo.latest_native_version,
-          whatsNew: versionInfo.whats_new,
-          enforceUpdate: true
-        });
-
-        return;
-      }
-    }
-
-    // Expo updates. Only if not in dev mode.
+    const { isTesting } = this.props;
 
     if (!__DEV__) {
       const latestIsNewer = await this.latestIsNewer();
@@ -162,10 +124,6 @@ class VersionUpdatesWrapper extends Component<Props, State> {
         });
       }
     }
-  }
-
-  async getVersionInfo() {
-    return (await this.props.getVersionInfo()).data;
   }
 
   async latestIsNewer() {
@@ -212,9 +170,9 @@ class VersionUpdatesWrapper extends Component<Props, State> {
 
   render() {
     const { children, enforceStoreNow, enforceWhatsNew, text } = this.props;
-    const { enforceUpdate, latestNativeVersion, whatsNew } = this.state;
+    const { latestNativeVersion, whatsNew } = this.state;
 
-    return enforceUpdate || enforceStoreNow ? (
+    return enforceStoreNow ? (
       <EnforceUpdateScreen
         text={text}
         enforceStoreNow={enforceStoreNow}
